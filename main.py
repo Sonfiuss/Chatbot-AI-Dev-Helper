@@ -2,36 +2,33 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-# ===== CẤU HÌNH API =====
-# Thông tin API của bạn (Elevate AI Ready)
-API_KEY = "sk-NYx_MReZLJNz1UzNnYvE4w"
-BASE_URL = "https://aiportalapi.stu-platform.live/jpe"
-MODEL_NAME = "gpt-4o-mini"  # Theo thông tin bạn cung cấp
+# ===== CẤU HÌNH API (qua .env) =====
+load_dotenv()
+API_KEY = os.getenv("OPENAI_API_KEY")
+BASE_URL = os.getenv("OPENAI_BASE_URL", "https://aiportalapi.stu-platform.live/jpe")
+MODEL_NAME = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 print("🔧 Đang cấu hình API...")
-print(f"� Endpoint: {BASE_URL}")
+print(f"📡 Endpoint: {BASE_URL}")
 print(f"🤖 Model: {MODEL_NAME}")
-print(f"💰 Budget: 3$")
+
+if not API_KEY:
+    print("❌ Thiếu OPENAI_API_KEY. Hãy tạo file .env và thêm OPENAI_API_KEY=... hoặc đặt biến môi trường.")
+    exit(1)
 
 try:
     # Khởi tạo OpenAI client với endpoint tùy chỉnh
-    client = OpenAI(
-        base_url=BASE_URL,
-        api_key=API_KEY
-    )
-    
-    # Test kết nối
-    print("🔍 Đang kiểm tra kết nối...")
-    test_response = client.chat.completions.create(
+    client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
+    # Test kết nối ngắn
+    _ = client.chat.completions.create(
         model=MODEL_NAME,
-        messages=[{"role": "user", "content": "Hello"}],
-        max_tokens=10
+        messages=[{"role": "user", "content": "ping"}],
+        max_tokens=5
     )
     print("✅ Kết nối API thành công!")
-    
 except Exception as e:
     print(f"❌ Lỗi kết nối API: {e}")
-    print("🔍 Kiểm tra lại API key và kết nối internet")
+    print("🔍 Kiểm tra lại API key, endpoint, model và kết nối internet")
     exit(1)
 
 # Lưu lịch sử hội thoại

@@ -1,36 +1,64 @@
-# AI Dev Helper Chatbot
+# AI Dev Helper – Python Assistant (Web + CLI)
 
-Chatbot hỗ trợ lập trình Python sử dụng OpenAI API.
+Trợ lý AI hỗ trợ lập trình Python. Dự án gồm 2 cách sử dụng:
+- Web (Flask) với giao diện 2 phần: nhập code và chat (night theme)
+- CLI (chạy trong terminal)
 
-## 🚀 Cách sử dụng nhanh
+## Cấu trúc thư mục
+```
+Chatbot_AIDevHelper/
+├─ app.py                 # Flask server
+├─ main.py                # CLI chat (terminal)
+├─ templates/
+│  └─ index.html          # Giao diện web
+├─ static/
+│  ├─ style.css           # CSS (night theme)
+│  └─ script.js           # Frontend logic
+├─ .env.example           # Mẫu biến môi trường
+├─ .gitignore             # Bảo vệ .env và artifacts
+├─ requirements.txt       # Phụ thuộc Python
+└─ README.md
+```
 
-### Bước 1: Cấu hình API Key
-Có 2 cách để cấu hình API key:
+## Biến môi trường (.env)
+Sao chép `.env.example` thành `.env` và điền giá trị thật:
+```
+OPENAI_API_KEY=sk-xxx
+OPENAI_BASE_URL=https://aiportalapi.stu-platform.live/jpe
+OPENAI_MODEL=gpt-4o-mini
+```
 
-**Cách 1: Thay trực tiếp trong code (đơn giản)**
-1. Mở file `main.py`
-2. Tìm dòng `API_KEY = "your-openai-api-key-here"`
-3. Thay thế `your-openai-api-key-here` bằng API key thực của bạn
+## Cài đặt phụ thuộc
+```cmd
+python -m pip install -r requirements.txt
+```
 
-**Cách 2: Sử dụng file .env (bảo mật hơn)**
-1. Sao chép file `.env.example` thành `.env`
-2. Mở file `.env` và thay thế API key
+Nếu pip không nhận, dùng:
+```cmd
+python -m pip install openai python-dotenv flask flask-cors
+```
 
-### Bước 2: Chạy chatbot
+## Chạy giao diện Web (Flask)
+```cmd
+python app.py
+```
+Truy cập: http://localhost:5000
+
+## Chạy CLI chat
 ```cmd
 python main.py
 ```
+Gõ câu hỏi, nhập `exit` để thoát.
 
-## 📋 Yêu cầu
-- Python 3.7+
-- Packages: `openai`, `python-dotenv`
+## Troubleshooting
+- 404 CSS/JS: đảm bảo file trong `static/` và `index.html` dùng `{{ url_for('static', filename='...') }}`
+- Lỗi key: kiểm tra `.env` đã có `OPENAI_API_KEY`
+- `pip` không nhận: dùng `python -m pip install ...`
 
-## 🔧 Cài đặt packages
-```cmd
-python -m pip install openai python-dotenv
-```
+## Bảo mật
+- API key chỉ nằm trong `.env`
+- Không hard-code khóa trong code
+- `.env` đã được ignore bởi Git
 
-## 💡 Lưu ý
-- API key có thể lấy từ: https://platform.openai.com/api-keys
-- Chatbot sử dụng model `gpt-3.5-turbo` để tiết kiệm chi phí
-- Gõ 'exit' hoặc 'thoát' để kết thúc chương trình
+## Giấy phép
+Dùng cho mục đích học tập và demo.
