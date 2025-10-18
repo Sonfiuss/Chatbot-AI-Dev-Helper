@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dev Helper - Python Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Phần 1: Method Input Panel -->
+        <div class="method-panel">
+            <div class="method-header">
+                <h2><i class="fas fa-code"></i> Python Method</h2>
+                <div class="panel-subtitle">Nhập code Python để AI phân tích và trợ giúp</div>
+            </div>
+            
+            <div class="method-content">
+                <div class="method-input-container">
+                    <div class="input-header">
+                        <span class="file-name">
+                            <i class="fab fa-python"></i> main.py
+                        </span>
+                        <div class="input-actions">
+                            <button class="action-btn" id="clearBtn" title="Xóa code">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="action-btn" id="copyBtn" title="Copy code">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <textarea 
+                        id="methodInput" 
+                        placeholder="# Nhập code Python của bạn ở đây...
+def example_function():
+    '''Ví dụ: Hàm tính tổng hai số'''
+    return a + b
+
+# Bạn có thể hỏi AI về:
+# - Giải thích code này làm gì?
+# - Tối ưu hóa code
+# - Tìm lỗi trong code
+# - Cách sử dụng method này
+# - Viết test case"
+                        rows="20"></textarea>
+                </div>
+                
+                <div class="quick-actions">
+                    <button class="quick-btn" data-action="explain">
+                        <i class="fas fa-question-circle"></i>
+                        Giải thích code
+                    </button>
+                    <button class="quick-btn" data-action="optimize">
+                        <i class="fas fa-rocket"></i>
+                        Tối ưu hóa
+                    </button>
+                    <button class="quick-btn" data-action="debug">
+                        <i class="fas fa-bug"></i>
+                        Tìm lỗi
+                    </button>
+                    <button class="quick-btn" data-action="test">
+                        <i class="fas fa-vial"></i>
+                        Viết test
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần 2: Chat Interface -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <h2><i class="fas fa-robot"></i> AI Dev Helper</h2>
+                <div class="chat-status">
+                    <span class="online-indicator"></span>
+                    <span>Sẵn sàng hỗ trợ Python</span>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-avatar bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p>👋 Chào bạn! Tôi là AI Dev Helper - trợ lý lập trình Python của bạn.</p>
+                            <p>📝 Hãy nhập code Python vào panel bên trái, sau đó:</p>
+                            <p>• Dùng các nút Quick Action để phân tích nhanh</p>
+                            <p>• Hoặc chat trực tiếp với tôi về code của bạn</p>
+                            <p>🚀 Sẵn sàng giúp bạn code tốt hơn!</p>
+                        </div>
+                        <div class="message-time">Vừa xong</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Hỏi gì đó về code Python của bạn...">
+                    <button id="sendButton" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-hints">
+                    <span class="hint">💡 Giải thích code này</span>
+                    <span class="hint">� Cách cải thiện?</span>
+                    <span class="hint">⚡ Tối ưu performance</span>
+                    <span class="hint">🧪 Viết unit test</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
