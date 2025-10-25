@@ -1,0 +1,112 @@
+{
+  "company_problems": [
+    {
+      "id": "problem_001",
+      "title": "Tối ưu hóa hiệu suất web API",
+      "description": "Hệ thống API hiện tại xử lý chậm khi có nhiều request đồng thời",
+      "context": {
+        "current_response_time": "2.5s",
+        "target_response_time": "< 500ms",
+        "concurrent_users": 1000,
+        "technology_stack": ["Python", "Flask", "PostgreSQL", "Redis"]
+      },
+      "requirements": [
+        "Phân tích bottleneck hiện tại",
+        "Đề xuất giải pháp tối ưu",
+        "Implement caching strategy",
+        "Database query optimization"
+      ]
+    },
+    {
+      "id": "problem_002", 
+      "title": "Phát triển hệ thống chat realtime",
+      "description": "Xây dựng hệ thống chat trực tiếp cho ứng dụng e-commerce",
+      "context": {
+        "expected_users": 10000,
+        "message_types": ["text", "image", "file"],
+        "platforms": ["web", "mobile"],
+        "integration_required": ["notification_system", "user_management"]
+      },
+      "requirements": [
+        "WebSocket implementation",
+        "Message persistence",
+        "Real-time notifications",
+        "Scalable architecture"
+      ]
+    },
+    {
+      "id": "problem_003",
+      "title": "Automation testing cho CI/CD pipeline", 
+      "description": "Thiết lập hệ thống testing tự động cho deployment pipeline",
+      "context": {
+        "current_coverage": "45%",
+        "target_coverage": "80%",
+        "deployment_frequency": "daily",
+        "technologies": ["Docker", "Kubernetes", "Jenkins", "pytest"]
+      },
+      "requirements": [
+        "Unit testing framework",
+        "Integration testing",
+        "Performance testing",
+        "Automated deployment validation"
+      ]
+    }
+  ],
+  "user_roles": [
+    {
+      "role": "senior_developer",
+      "expertise": ["Python", "system_architecture", "performance_optimization"],
+      "experience_years": 8,
+      "preferred_communication": "technical_detailed"
+    },
+    {
+      "role": "junior_developer", 
+      "expertise": ["Python", "web_development"],
+      "experience_years": 2,
+      "preferred_communication": "step_by_step_guidance"
+    },
+    {
+      "role": "team_lead",
+      "expertise": ["project_management", "technical_leadership", "code_review"],
+      "experience_years": 10,
+      "preferred_communication": "strategic_overview"
+    },
+    {
+      "role": "devops_engineer",
+      "expertise": ["infrastructure", "automation", "monitoring"],
+      "experience_years": 6,
+      "preferred_communication": "infrastructure_focused"
+    }
+  ],
+  "conversation_scenarios": [
+    {
+      "scenario_id": "code_review",
+      "title": "Code Review Discussion",
+      "sample_conversation": [
+        {
+          "role": "user",
+          "content": "Tôi cần review đoạn code API này, có vấn đề gì không?",
+          "code_snippet": "def get_users(page=1, limit=10):\n    users = User.query.offset((page-1)*limit).limit(limit).all()\n    return [user.to_dict() for user in users]"
+        },
+        {
+          "role": "assistant", 
+          "content": "Tôi thấy một số vấn đề cần cải thiện:\n\n**1. Thiếu error handling:**\n- Không validate input parameters\n- Không xử lý database exceptions\n\n**2. Performance issues:**\n- N+1 query problem nếu to_dict() có relationships\n- Không có pagination metadata\n\n**3. Security concerns:**\n- Không giới hạn max limit\n- Thiếu authentication check\n\nBạn muốn tôi đề xuất code cải thiện không?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "debugging_session",
+      "title": "Debugging Help",
+      "sample_conversation": [
+        {
+          "role": "user",
+          "content": "Ứng dụng Flask của tôi bị lỗi 500, log báo 'AttributeError: NoneType object has no attribute split'"
+        },
+        {
+          "role": "assistant",
+          "content": "Lỗi này thường xảy ra khi bạn cố gắng gọi method `.split()` trên một variable có giá trị `None`. \n\n**Cách debug từng bước:**\n\n1. **Xác định vị trí lỗi:** Bạn có thể share full stack trace không?\n\n2. **Kiểm tra các nguyên nhân phổ biến:**\n   - Request parameter bị missing\n   - Database query trả về None\n   - Environment variable chưa được set\n\n3. **Quick fix pattern:**\n```python\n# Thay vì:\nresult = some_value.split(',')\n\n# Dùng:\nresult = (some_value or '').split(',')\n# hoặc\nif some_value:\n    result = some_value.split(',')\n```\n\nBạn có thể share code tại vị trí báo lỗi để tôi giúp cụ thể hơn?"
+        }
+      ]
+    }
+  ]
+}
