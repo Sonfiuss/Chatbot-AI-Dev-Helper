@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Development Expert - Workshop 2</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+    />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header với status và controls -->
+      <header class="app-header">
+        <div class="header-left">
+          <h1><i class="fas fa-brain"></i> AI Development Expert</h1>
+          <span class="version-badge">Workshop 2</span>
+        </div>
+        <div class="header-center">
+          <div class="mode-selector">
+            <select id="chatMode" class="mode-select">
+              <option value="advanced_chatbot">🤖 Advanced Chatbot</option>
+              <option value="code_reviewer">🔍 Code Reviewer</option>
+              <option value="debugging_assistant">🐛 Debug Assistant</option>
+            </select>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="status-indicator" id="statusIndicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+          </div>
+          <button class="header-btn" id="exportBtn" title="Export Conversation">
+            <i class="fas fa-download"></i>
+          </button>
+          <button class="header-btn" id="clearBtn" title="Clear Conversation">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="header-btn" id="settingsBtn" title="Settings">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="main-content">
+        <!-- Sidebar với context và tools -->
+        <aside class="sidebar">
+          <div class="sidebar-section">
+            <h3><i class="fas fa-history"></i> Conversation Context</h3>
+            <div class="context-info" id="contextInfo">
+              <div class="context-item">
+                <span class="context-label">Messages:</span>
+                <span class="context-value" id="messageCount">0</span>
+              </div>
+              <div class="context-item">
+                <span class="context-label">Functions Used:</span>
+                <span class="context-value" id="functionCount">0</span>
+              </div>
+              <div class="context-item">
+                <span class="context-label">Topics:</span>
+                <div class="topic-tags" id="topicTags"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3><i class="fas fa-tools"></i> Quick Actions</h3>
+            <div class="quick-actions">
+              <button
+                class="quick-action-btn"
+                data-action="analyze"
+                data-prompt="Phân tích đoạn code này và tìm potential issues:"
+              >
+                <i class="fas fa-search"></i>
+                <span>Analyze Code</span>
+              </button>
+              <button
+                class="quick-action-btn"
+                data-action="optimize"
+                data-prompt="Tối ưu hóa performance của code này:"
+              >
+                <i class="fas fa-rocket"></i>
+                <span>Optimize</span>
+              </button>
+              <button
+                class="quick-action-btn"
+                data-action="debug"
+                data-prompt="Debug vấn đề trong code này:"
+              >
+                <i class="fas fa-bug"></i>
+                <span>Debug Help</span>
+              </button>
+              <button
+                class="quick-action-btn"
+                data-action="test"
+                data-prompt="Viết unit tests cho code này:"
+              >
+                <i class="fas fa-vial"></i>
+                <span>Generate Tests</span>
+              </button>
+              <button
+                class="quick-action-btn"
+                data-action="solution"
+                data-prompt="Tôi cần giải pháp cho vấn đề:"
+              >
+                <i class="fas fa-lightbulb"></i>
+                <span>Solution Design</span>
+              </button>
+              <button
+                class="quick-action-btn"
+                data-action="architecture"
+                data-prompt="Review architecture và đề xuất improvements cho:"
+              >
+                <i class="fas fa-sitemap"></i>
+                <span>Architecture</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3><i class="fas fa-database"></i> Mock Problems</h3>
+            <div class="mock-problems" id="mockProblems">
+              <button class="mock-problem-btn" data-problem="api_optimization">
+                <i class="fas fa-server"></i>
+                <span>API Performance</span>
+              </button>
+              <button class="mock-problem-btn" data-problem="realtime_chat">
+                <i class="fas fa-comments"></i>
+                <span>Realtime Chat</span>
+              </button>
+              <button class="mock-problem-btn" data-problem="ci_cd_testing">
+                <i class="fas fa-cogs"></i>
+                <span>CI/CD Testing</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3><i class="fas fa-code"></i> Code Input</h3>
+            <div class="code-input-section">
+              <div class="code-header">
+                <span class="file-name">
+                  <i class="fab fa-python"></i> main.py
+                </span>
+                <div class="code-actions">
+                  <button
+                    class="code-action-btn"
+                    id="pasteCodeBtn"
+                    title="Paste from clipboard"
+                  >
+                    <i class="fas fa-clipboard"></i>
+                  </button>
+                  <button
+                    class="code-action-btn"
+                    id="clearCodeBtn"
+                    title="Clear code"
+                  >
+                    <i class="fas fa-eraser"></i>
+                  </button>
+                </div>
+              </div>
+              <textarea
+                id="codeInput"
+                class="code-textarea"
+                placeholder="# Paste your Python code here...
+def example_function(data):
+    '''Example function for analysis'''
+    try:
+        result = process_data(data)
+        return result
+    except Exception as e:
+        print(f'Error: {e}')
+        return None
+
+# Ask AI about:
+# - Code review và optimization
+# - Bug detection và fixes  
+# - Performance improvements
+# - Test case generation
+# - Architecture suggestions"
+                rows="15"
+              ></textarea>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main chat area -->
+        <main class="chat-area">
+          <div class="chat-header">
+            <div class="chat-title">
+              <h2 id="chatTitle">Advanced AI Development Assistant</h2>
+              <p class="chat-subtitle" id="chatSubtitle">
+                Multi-turn conversation với function calling và advanced
+                prompting
+              </p>
+            </div>
+            <div class="chat-controls">
+              <label class="toggle-switch">
+                <input type="checkbox" id="functionsToggle" checked />
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Function Calling</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+              <div class="message-avatar">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="message-content">
+                <div class="message-bubble">
+                  <div class="message-header">
+                    <span class="sender-name">AI Development Expert</span>
+                    <span class="message-time">Just now</span>
+                  </div>
+                  <div class="message-text">
+                    <h4>🚀 Welcome to AI Development Expert - Workshop 2!</h4>
+
+                    <p><strong>Enhanced Features:</strong></p>
+                    <ul>
+                      <li>
+                        🧠 <strong>Advanced Function Calling:</strong> Code
+                        analysis, solution generation, test creation
+                      </li>
+                      <li>
+                        💬
+                        <strong>Multi-turn Conversations:</strong> Context-aware
+                        dialogue với conversation management
+                      </li>
+                      <li>
+                        🎯 <strong>Specialized Modes:</strong> Code Reviewer,
+                        Debug Assistant, General Chatbot
+                      </li>
+                      <li>
+                        ⚡ <strong>Few-shot Prompting:</strong> Better responses
+                        với chain-of-thought reasoning
+                      </li>
+                      <li>
+                        📊 <strong>Real Problem Solving:</strong> Mock company
+                        scenarios với detailed solutions
+                      </li>
+                    </ul>
+
+                    <p><strong>How to use:</strong></p>
+                    <ol>
+                      <li>
+                        📝 Paste the code into the sidebar or type it directly
+                      </li>
+                      <li>
+                        🎛️ Choose the appropriate mode (Chatbot/Code
+                        Review/Debug)
+                      </li>
+                      <li>⚡ Use Quick Actions for common tasks</li>
+                      <li>💬 Chat directly about coding problems</li>
+                      <li>📊 View conversation context and export logs</li>
+                    </ol>
+
+                    <div class="action-prompt">
+                      <p>
+                        Ready to help you solve complex development challenges!
+                        🎯
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-container">
+            <div class="input-enhancements">
+              <div class="input-suggestions" id="inputSuggestions">
+                <button
+                  class="suggestion-chip"
+                  data-text="Phân tích code này và tìm security issues"
+                >
+                  🔒 Security Analysis
+                </button>
+                <button
+                  class="suggestion-chip"
+                  data-text="Tối ưu performance cho function này"
+                >
+                  ⚡ Performance Optimization
+                </button>
+                <button
+                  class="suggestion-chip"
+                  data-text="Viết comprehensive unit tests"
+                >
+                  🧪 Generate Tests
+                </button>
+                <button
+                  class="suggestion-chip"
+                  data-text="Design scalable architecture cho"
+                >
+                  🏗️ Architecture Design
+                </button>
+              </div>
+            </div>
+
+            <div class="chat-input-wrapper">
+              <div class="input-container">
+                <textarea
+                  id="messageInput"
+                  placeholder="Describe your development challenge hoặc ask specific questions về code..."
+                  rows="1"
+                ></textarea>
+                <div class="input-actions">
+                  <button
+                    id="attachCodeBtn"
+                    class="input-action-btn"
+                    title="Include code from sidebar"
+                  >
+                    <i class="fas fa-code"></i>
+                  </button>
+                  <button id="sendButton" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="input-footer">
+                <div class="input-info">
+                  <span
+                    class="typing-indicator"
+                    id="typingIndicator"
+                    style="display: none"
+                  >
+                    <i class="fas fa-circle"></i>
+                    <i class="fas fa-circle"></i>
+                    <i class="fas fa-circle"></i>
+                    AI is thinking...
+                  </span>
+                </div>
+                <div class="input-stats">
+                  <span id="charCount">0</span> characters
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal cho settings -->
+    <div id="settingsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-cog"></i> Advanced Settings</h3>
+          <button class="modal-close" id="closeSettings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label>Temperature (0.0 - 1.0):</label>
+            <input
+              type="range"
+              id="temperatureSlider"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.7"
+            />
+            <span id="temperatureValue">0.7</span>
+          </div>
+          <div class="setting-group">
+            <label>Max Tokens:</label>
+            <input
+              type="number"
+              id="maxTokens"
+              value="1500"
+              min="100"
+              max="4000"
+            />
+          </div>
+          <div class="setting-group">
+            <label>
+              <input type="checkbox" id="chainOfThought" checked />
+              Enable Chain-of-Thought Reasoning
+            </label>
+          </div>
+          <div class="setting-group">
+            <label>
+              <input type="checkbox" id="fewShotExamples" checked />
+              Include Few-Shot Examples
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Processing your request...</p>
+      </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
