@@ -18,13 +18,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_community.vectorstores import FAISS
-from langchain_openai import AzureOpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 
-from openai import AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 
 # Load code knowledge base từ file
 def load_code_knowledge_base() -> List[Dict[str, Any]]:
@@ -272,47 +273,110 @@ class RAGService:
         self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-07-01-preview")
         self.chat_deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT") or os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
         self.embed_deployment = os.getenv("AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT")
+        
+        # Detect if using standard OpenAI API (non-Azure) or local embeddings
+        self.use_standard_openai = self.endpoint and not self.endpoint.endswith(".azure.com")
+        self.use_local_embeddings = os.getenv("USE_LOCAL_EMBEDDINGS", "").lower() == "true"
+        self.disable_rag = os.getenv("DISABLE_RAG", "").lower() == "true"
 
         # Clients
-        self._aoai_client: Optional[AzureOpenAI] = None
+        self._aoai_client: Optional[AzureOpenAI | OpenAI] = None
         self._retrieval_chain: Optional[ConversationalRetrievalChain] = None
 
     def build(self) -> None:
-        # Embeddings + FAISS
-        emb_kwargs = dict(
-            azure_endpoint=self.endpoint,
-            api_key=self.api_key,
-            api_version=self.api_version,
-        )
-        if self.embed_deployment:
-            emb_kwargs["azure_deployment"] = self.embed_deployment
-
-        embeddings = AzureOpenAIEmbeddings(**emb_kwargs)
+        # If RAG is disabled, only initialize chat client (no embeddings/vectorstore)
+        if self.disable_rag:
+            print("RAG disabled - using direct chat mode (no vector retrieval)...")
+            self._retrieval_chain = None  # No retrieval chain
+            
+            # OpenAI SDK client for direct chat
+            if self.use_standard_openai:
+                self._aoai_client = OpenAI(
+                    api_key=self.api_key,
+                    base_url=self.endpoint
+                )
+            else:
+                self._aoai_client = AzureOpenAI(
+                    api_key=self.api_key,
+                    api_version=self.api_version,
+                    azure_endpoint=self.endpoint
+                )
+            return
+        
+        # Embeddings + FAISS (original RAG mode)
+        if self.use_local_embeddings:
+            # Use local HuggingFace embeddings (free, no API key needed)
+            print("Using local HuggingFace embeddings (sentence-transformers)...")
+            embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={'device': 'cpu'},
+                encode_kwargs={'normalize_embeddings': True}
+            )
+        elif self.use_standard_openai:
+            # Standard OpenAI API (like Elevate AI Ready)
+            embeddings = OpenAIEmbeddings(
+                openai_api_key=self.api_key,
+                openai_api_base=self.endpoint,
+                model=self.embed_deployment or self.chat_deployment,
+            )
+        else:
+            # Azure OpenAI API
+            emb_kwargs = dict(
+                azure_endpoint=self.endpoint,
+                api_key=self.api_key,
+                api_version=self.api_version,
+            )
+            if self.embed_deployment:
+                emb_kwargs["azure_deployment"] = self.embed_deployment
+            embeddings = AzureOpenAIEmbeddings(**emb_kwargs)
+        
         texts = [d["page_content"] for d in self.docs]
         metas = [d.get("metadata", {}) for d in self.docs]
         vectorstore = FAISS.from_texts(texts, embedding=embeddings, metadatas=metas)
         retriever = vectorstore.as_retriever(search_kwargs={"k": self.k})
 
         # Chat model via LangChain for the retrieval chain
-        chat_lc = AzureChatOpenAI(
-            azure_endpoint=self.endpoint,
-            api_key=self.api_key,
-            api_version=self.api_version,
-            azure_deployment=self.chat_deployment,
-            temperature=0.2,
-        )
+        if self.use_standard_openai:
+            # Standard OpenAI API
+            chat_lc = ChatOpenAI(
+                openai_api_key=self.api_key,
+                openai_api_base=self.endpoint,
+                model_name=self.chat_deployment,
+                temperature=0.2,
+            )
+        else:
+            # Azure OpenAI API
+            chat_lc = AzureChatOpenAI(
+                azure_endpoint=self.endpoint,
+                api_key=self.api_key,
+                api_version=self.api_version,
+                azure_deployment=self.chat_deployment,
+                temperature=0.2,
+            )
+        
         self._retrieval_chain = ConversationalRetrievalChain.from_llm(
             llm=chat_lc, retriever=retriever, return_source_documents=True
         )
 
-        # Azure OpenAI SDK client for tool-calling
-        self._aoai_client = AzureOpenAI(
-            api_key=self.api_key, api_version=self.api_version, azure_endpoint=self.endpoint
-        )
+        # OpenAI SDK client for tool-calling
+        if self.use_standard_openai:
+            # Standard OpenAI API
+            self._aoai_client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.endpoint
+            )
+        else:
+            # Azure OpenAI API
+            self._aoai_client = AzureOpenAI(
+                api_key=self.api_key,
+                api_version=self.api_version,
+                azure_endpoint=self.endpoint
+            )
 
     @property
     def ready(self) -> bool:
-        return self._retrieval_chain is not None and self._aoai_client is not None
+        # Ready if we have the OpenAI client (retrieval chain optional if RAG disabled)
+        return self._aoai_client is not None
 
     def ensure_ready(self) -> None:
         if not self.ready:
@@ -332,19 +396,28 @@ class RAGService:
         """Run retrieval + tool calling. Returns {answer, sources}."""
         self.ensure_ready()
 
-        # 1) Retrieve with LangChain
-        rag_result = self._retrieval_chain({"question": query, "chat_history": history})
-        sources = rag_result.get("source_documents", [])
-        knowledge = "\n".join(
-            [f"- {d.metadata.get('source')}: {d.page_content}" for d in sources]
-        )
+        sources = []
+        knowledge_context = ""
+        
+        # 1) Retrieve with LangChain (only if RAG is enabled)
+        if not self.disable_rag and self._retrieval_chain:
+            rag_result = self._retrieval_chain({"question": query, "chat_history": history})
+            sources = rag_result.get("source_documents", [])
+            knowledge = "\n".join(
+                [f"- {d.metadata.get('source')}: {d.page_content}" for d in sources]
+            )
+            knowledge_context = f"📚 KNOWLEDGE BASE:\n{knowledge}" if knowledge else ""
 
-        # 2) Tool-calling with Azure OpenAI
-        knowledge_context = f"📚 KNOWLEDGE BASE:\n{knowledge}" if knowledge else ""
+        # 2) Tool-calling with OpenAI
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "system", "content": knowledge_context if knowledge_context else "No specific knowledge retrieved for this query."},
         ]
+        
+        if knowledge_context:
+            messages.append({"role": "system", "content": knowledge_context})
+        else:
+            messages.append({"role": "system", "content": "Use your knowledge to assist with Python code questions."})
+            
         for q, a in history:
             messages.append({"role": "user", "content": q})
             messages.append({"role": "assistant", "content": a})
