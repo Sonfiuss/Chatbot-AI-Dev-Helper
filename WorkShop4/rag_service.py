@@ -18,14 +18,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_community.vectorstores import FAISS
+from langchain_pinecone import PineconeVectorStore
 from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.chains import ConversationalRetrievalChain
+from langchain_classic.chains import ConversationalRetrievalChain
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
-from langchain.schema import Document
-from langchain.prompts import PromptTemplate
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
 
 from openai import AzureOpenAI, OpenAI
+
+try:
+    from pinecone import Pinecone, ServerlessSpec
+    PINECONE_AVAILABLE = True
+except ImportError:
+    PINECONE_AVAILABLE = False
 
 # Load code knowledge base từ file
 def load_code_knowledge_base() -> List[Dict[str, Any]]:
@@ -278,6 +285,13 @@ class RAGService:
         self.use_standard_openai = self.endpoint and not self.endpoint.endswith(".azure.com")
         self.use_local_embeddings = os.getenv("USE_LOCAL_EMBEDDINGS", "").lower() == "true"
         self.disable_rag = os.getenv("DISABLE_RAG", "").lower() == "true"
+        
+        # Pinecone configuration
+        self.use_pinecone = os.getenv("USE_PINECONE", "").lower() == "true"
+        self.pinecone_api_key = os.getenv("PINECONE_API_KEY")
+        self.pinecone_index_name = os.getenv("PINECONE_INDEX_NAME", "code-assistant")
+        self.pinecone_cloud = os.getenv("PINECONE_CLOUD", "aws")
+        self.pinecone_region = os.getenv("PINECONE_REGION", "us-east-1")
 
         # Clients
         self._aoai_client: Optional[AzureOpenAI | OpenAI] = None
@@ -303,7 +317,7 @@ class RAGService:
                 )
             return
         
-        # Embeddings + FAISS (original RAG mode)
+        # Initialize embeddings
         if self.use_local_embeddings:
             # Use local HuggingFace embeddings (free, no API key needed)
             print("Using local HuggingFace embeddings (sentence-transformers)...")
@@ -330,9 +344,51 @@ class RAGService:
                 emb_kwargs["azure_deployment"] = self.embed_deployment
             embeddings = AzureOpenAIEmbeddings(**emb_kwargs)
         
+        # Create vector store (Pinecone or FAISS)
         texts = [d["page_content"] for d in self.docs]
         metas = [d.get("metadata", {}) for d in self.docs]
-        vectorstore = FAISS.from_texts(texts, embedding=embeddings, metadatas=metas)
+        
+        if self.use_pinecone:
+            if not PINECONE_AVAILABLE:
+                raise ImportError("Pinecone is not installed. Run: pip install pinecone-client")
+            if not self.pinecone_api_key:
+                raise ValueError("PINECONE_API_KEY not found in environment variables")
+            
+            print(f"Using Pinecone vector database (index: {self.pinecone_index_name})...")
+            
+            # Initialize Pinecone
+            pc = Pinecone(api_key=self.pinecone_api_key)
+            
+            # Check if index exists, create if not
+            existing_indexes = [index.name for index in pc.list_indexes()]
+            
+            if self.pinecone_index_name not in existing_indexes:
+                print(f"Creating Pinecone index: {self.pinecone_index_name}...")
+                pc.create_index(
+                    name=self.pinecone_index_name,
+                    dimension=384,  # all-MiniLM-L6-v2 dimension
+                    metric='cosine',
+                    spec=ServerlessSpec(
+                        cloud=self.pinecone_cloud,
+                        region=self.pinecone_region
+                    )
+                )
+                print(f"Index {self.pinecone_index_name} created successfully!")
+            else:
+                print(f"Using existing Pinecone index: {self.pinecone_index_name}")
+            
+            # Create vectorstore from texts
+            vectorstore = PineconeVectorStore.from_texts(
+                texts=texts,
+                embedding=embeddings,
+                metadatas=metas,
+                index_name=self.pinecone_index_name
+            )
+        else:
+            # Use FAISS (local vector database)
+            print("Using FAISS local vector database...")
+            vectorstore = FAISS.from_texts(texts, embedding=embeddings, metadatas=metas)
+        
         retriever = vectorstore.as_retriever(search_kwargs={"k": self.k})
 
         # Chat model via LangChain for the retrieval chain
@@ -469,6 +525,12 @@ class RAGService:
         return {
             "answer": answer,
             "sources": [
-                {"source": d.metadata.get("source"), "content": d.page_content} for d in sources
+                {
+                    "source": d.metadata.get("category", "general"),
+                    "content": d.page_content,
+                    "severity": d.metadata.get("severity", ""),
+                    "language": d.metadata.get("language", ""),
+                } 
+                for d in sources
             ],
         }

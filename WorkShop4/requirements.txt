@@ -1,18 +1,28 @@
 # Workshop 4 Requirements - Code Assistant Chatbot với RAG
 
-# Core Dependencies
-langchain==0.3.7
-langchain-openai==0.2.6
-langchain-community==0.3.5
-openai>=1.54.0
-faiss-cpu==1.8.0.post1
+# Core Dependencies - Updated versions
+langchain==1.0.8
+langchain-openai==1.0.3
+langchain-community==0.4.1
+langchain-pinecone==0.2.13
+openai==1.109.1
 tiktoken==0.7.0
 python-dotenv==1.0.1
+
+# Vector Database
+faiss-cpu==1.8.0.post1
+pinecone==7.3.0
+
+# Local Embeddings
+sentence-transformers==2.7.0
 
 # Web Framework
 flask==3.0.0
 flask-cors==4.0.0
 werkzeug==3.0.1
+
+# NumPy - Compatible version for scipy
+numpy>=1.24,<2.0
 
 # Optional - Jupyter Notebook support
 jupyter==1.1.1
