@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Assistant Chatbot với RAG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-code"></i> Code Assistant Chatbot</h1>
+                <p class="subtitle">RAG System với FAISS + Langchain + Azure OpenAI</p>
+            </div>
+            <div class="header-actions">
+                <button id="clearBtn" class="btn btn-secondary">
+                    <i class="fas fa-trash"></i> Clear Chat
+                </button>
+                <div class="status-indicator" id="status">
+                    <i class="fas fa-circle"></i> <span>Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar với features -->
+            <aside class="sidebar">
+                <div class="feature-card">
+                    <h3><i class="fas fa-robot"></i> Features</h3>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Code Analysis & Bug Detection</li>
+                        <li><i class="fas fa-check"></i> Error Explanation</li>
+                        <li><i class="fas fa-check"></i> Best Practices Suggestions</li>
+                        <li><i class="fas fa-check"></i> RAG Knowledge Retrieval</li>
+                        <li><i class="fas fa-check"></i> File Upload Support</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3><i class="fas fa-upload"></i> Upload Code</h3>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".py,.txt,.js,.java,.cpp,.c" hidden>
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click or drag file here</p>
+                        <small>Python, JavaScript, Java, C/C++ (.py, .js, .java, .cpp, .c)</small>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><i class="fas fa-lightbulb"></i> Quick Examples</h3>
+                    <div class="example-queries">
+                        <button class="example-btn" data-query="AttributeError khi truy cập object là gì? Làm sao fix?">
+                            AttributeError fix
+                        </button>
+                        <button class="example-btn" data-query="N+1 query problem là gì? Ví dụ và cách giải quyết">
+                            N+1 Query Problem
+                        </button>
+                        <button class="example-btn" data-query="Phân tích code này có lỗi gì:\n\ndef get_user(id):\n    user = User.query.get(id)\n    return user.name">
+                            Analyze Code
+                        </button>
+                        <button class="example-btn" data-query="Best practices cho Flask API error handling">
+                            Flask Best Practices
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-container">
+                <div class="chat-header">
+                    <h2><i class="fas fa-comments"></i> Chat với Code Assistant</h2>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p><strong>🤖 Code Assistant:</strong></p>
+                            <p>Chào bạn! Tôi là Code Assistant Expert, được trang bị:</p>
+                            <ul>
+                                <li>🔍 <strong>Code Analysis:</strong> Phát hiện bugs, security issues, performance problems</li>
+                                <li>💡 <strong>Error Explanation:</strong> Giải thích lỗi và đưa ra solutions</li>
+                                <li>✨ <strong>Best Practices:</strong> Suggest improvements dựa trên knowledge base</li>
+                                <li>📚 <strong>RAG System:</strong> Truy xuất thông tin từ code knowledge base</li>
+                            </ul>
+                            <p>Bạn có thể:</p>
+                            <ul>
+                                <li>Hỏi về errors/bugs cụ thể</li>
+                                <li>Upload code file để analyze</li>
+                                <li>Paste code trực tiếp trong chat</li>
+                                <li>Hỏi về best practices</li>
+                            </ul>
+                            <p><em>Hãy bắt đầu bằng cách hỏi hoặc upload code file! 🚀</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="userInput" 
+                            placeholder="Hỏi về code, paste code để analyze, hoặc mô tả lỗi bạn gặp phải..."
+                            rows="3"
+                        ></textarea>
+                        <button id="sendBtn" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                    <div class="input-hints">
+                        <span><i class="fas fa-keyboard"></i> Shift + Enter: New line</span>
+                        <span><i class="fas fa-paper-plane"></i> Enter: Send</span>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

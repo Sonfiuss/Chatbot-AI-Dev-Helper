@@ -1,0 +1,224 @@
+[
+  {
+    "page_content": "Common Python Error: AttributeError when accessing None object. Always check if object is not None before accessing attributes. Use conditional checks or Optional type hints.",
+    "metadata": {
+      "category": "common_errors",
+      "language": "python",
+      "severity": "high",
+      "example": "if user is not None:\n    print(user.name)"
+    }
+  },
+  {
+    "page_content": "N+1 Query Problem: Loading related objects in a loop causes multiple database queries. Solution: Use eager loading with .join() or .selectinload() to fetch all data in one query.",
+    "metadata": {
+      "category": "performance",
+      "language": "python",
+      "severity": "high",
+      "example": "users = User.query.options(joinedload(User.posts)).all()"
+    }
+  },
+  {
+    "page_content": "SQL Injection Prevention: Never concatenate user input into SQL queries. Always use parameterized queries or ORM methods to prevent SQL injection attacks.",
+    "metadata": {
+      "category": "security",
+      "language": "python",
+      "severity": "critical",
+      "example": "User.query.filter_by(email=user_input).first()  # Safe\n# Bad: f'SELECT * FROM users WHERE email={user_input}'"
+    }
+  },
+  {
+    "page_content": "Flask Route Error Handling: Always wrap route handlers with try-except blocks. Return appropriate HTTP status codes (400 for bad request, 500 for server errors).",
+    "metadata": {
+      "category": "best_practices",
+      "language": "python",
+      "framework": "flask",
+      "example": "@app.route('/api/data')\ndef get_data():\n    try:\n        return jsonify(data), 200\n    except Exception as e:\n        return jsonify({'error': str(e)}), 500"
+    }
+  },
+  {
+    "page_content": "Memory Leak: Lists or dicts stored in global scope keep growing. Clear collections after use or use weak references for caching.",
+    "metadata": {
+      "category": "bugs",
+      "language": "python",
+      "severity": "medium",
+      "solution": "Use collections with size limits, implement cleanup routines, or use WeakValueDictionary"
+    }
+  },
+  {
+    "page_content": "Async/Await Best Practice: Don't mix blocking I/O with async code. Use async libraries (aiohttp, asyncpg) instead of synchronous ones (requests, psycopg2).",
+    "metadata": {
+      "category": "performance",
+      "language": "python",
+      "framework": "asyncio",
+      "example": "# Good:\nasync with aiohttp.ClientSession() as session:\n    async with session.get(url) as resp:\n        return await resp.json()\n\n# Bad: requests.get() in async function"
+    }
+  },
+  {
+    "page_content": "IndexError in List Access: Always check list length before accessing by index, or use .get() for dicts. Consider using try-except or conditional checks.",
+    "metadata": {
+      "category": "common_errors",
+      "language": "python",
+      "severity": "medium",
+      "solution": "if len(items) > index:\n    item = items[index]\nelse:\n    item = None"
+    }
+  },
+  {
+    "page_content": "Circular Import Error: Two modules importing each other causes circular dependency. Restructure code, move imports inside functions, or create a third module for shared code.",
+    "metadata": {
+      "category": "bugs",
+      "language": "python",
+      "severity": "high",
+      "solution": "Move imports to function level, refactor shared code to separate module, or use TYPE_CHECKING"
+    }
+  },
+  {
+    "page_content": "Environment Variables Security: Never hardcode API keys, passwords, or secrets in code. Use environment variables with python-dotenv or config management systems.",
+    "metadata": {
+      "category": "security",
+      "language": "python",
+      "severity": "critical",
+      "example": "from dotenv import load_dotenv\nimport os\nload_dotenv()\nAPI_KEY = os.getenv('API_KEY')"
+    }
+  },
+  {
+    "page_content": "Database Connection Pool: Always use connection pooling for database access. Close connections properly using context managers or finally blocks.",
+    "metadata": {
+      "category": "best_practices",
+      "language": "python",
+      "framework": "sqlalchemy",
+      "example": "engine = create_engine(url, pool_size=10, max_overflow=20)\nwith engine.connect() as conn:\n    result = conn.execute(query)"
+    }
+  },
+  {
+    "page_content": "JSON Serialization Error: Python objects like datetime, Decimal need custom serialization. Use json.dumps with default parameter or implement JSONEncoder.",
+    "metadata": {
+      "category": "common_errors",
+      "language": "python",
+      "severity": "medium",
+      "solution": "from datetime import datetime\nimport json\n\ndef default_serializer(obj):\n    if isinstance(obj, datetime):\n        return obj.isoformat()\n    raise TypeError\n\njson.dumps(data, default=default_serializer)"
+    }
+  },
+  {
+    "page_content": "CORS Configuration: Cross-Origin Resource Sharing errors occur when frontend and backend are on different domains. Configure Flask-CORS properly with allowed origins.",
+    "metadata": {
+      "category": "configuration",
+      "language": "python",
+      "framework": "flask",
+      "example": "from flask_cors import CORS\nCORS(app, resources={r'/api/*': {'origins': ['http://localhost:3000']}})"
+    }
+  },
+  {
+    "page_content": "Rate Limiting API: Implement rate limiting to prevent abuse and DDoS attacks. Use Flask-Limiter or custom middleware to limit requests per IP/user.",
+    "metadata": {
+      "category": "security",
+      "language": "python",
+      "framework": "flask",
+      "example": "from flask_limiter import Limiter\nlimiter = Limiter(app, key_func=lambda: request.remote_addr)\n\n@limiter.limit('10/minute')\n@app.route('/api/data')\ndef get_data():\n    return jsonify(data)"
+    }
+  },
+  {
+    "page_content": "Unit Testing Best Practice: Write tests for edge cases, not just happy paths. Test error handling, boundary conditions, and invalid inputs.",
+    "metadata": {
+      "category": "testing",
+      "language": "python",
+      "framework": "pytest",
+      "example": "def test_divide_by_zero():\n    with pytest.raises(ZeroDivisionError):\n        divide(10, 0)"
+    }
+  },
+  {
+    "page_content": "Logging Strategy: Use structured logging with proper log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL). Include context like user_id, request_id for debugging.",
+    "metadata": {
+      "category": "best_practices",
+      "language": "python",
+      "example": "import logging\nlogger = logging.getLogger(__name__)\nlogger.info('User login', extra={'user_id': user.id, 'ip': request.remote_addr})"
+    }
+  },
+  {
+    "page_content": "Mutable Default Arguments: Never use mutable objects (list, dict) as default function arguments. They persist across function calls causing unexpected behavior.",
+    "metadata": {
+      "category": "bugs",
+      "language": "python",
+      "severity": "high",
+      "example": "# Bad:\ndef add_item(item, items=[]):\n    items.append(item)\n    return items\n\n# Good:\ndef add_item(item, items=None):\n    if items is None:\n        items = []\n    items.append(item)\n    return items"
+    }
+  },
+  {
+    "page_content": "Concurrency with Threading: Be careful with shared state in multi-threaded code. Use threading.Lock() or queue.Queue for thread-safe operations.",
+    "metadata": {
+      "category": "concurrency",
+      "language": "python",
+      "severity": "high",
+      "example": "import threading\nlock = threading.Lock()\n\nwith lock:\n    # thread-safe operation\n    shared_data.append(item)"
+    }
+  },
+  {
+    "page_content": "File Handling Best Practice: Always use context managers (with statement) when working with files. This ensures files are properly closed even if errors occur.",
+    "metadata": {
+      "category": "best_practices",
+      "language": "python",
+      "example": "with open('file.txt', 'r') as f:\n    content = f.read()\n# File automatically closed here"
+    }
+  },
+  {
+    "page_content": "Password Hashing: Never store passwords in plain text. Use bcrypt, argon2, or pbkdf2 for secure password hashing with salt.",
+    "metadata": {
+      "category": "security",
+      "language": "python",
+      "severity": "critical",
+      "example": "from werkzeug.security import generate_password_hash, check_password_hash\n\nhashed = generate_password_hash(password, method='pbkdf2:sha256')\nis_valid = check_password_hash(hashed, input_password)"
+    }
+  },
+  {
+    "page_content": "Input Validation: Always validate and sanitize user inputs before processing. Check data types, length limits, format patterns to prevent injection attacks.",
+    "metadata": {
+      "category": "security",
+      "language": "python",
+      "severity": "high",
+      "example": "from wtforms import StringField, validators\n\nemail = StringField('Email', [\n    validators.DataRequired(),\n    validators.Email(),\n    validators.Length(max=255)\n])"
+    }
+  },
+  {
+    "page_content": "Deadlock in Database Transactions: Acquiring locks in different order across transactions can cause deadlocks. Always acquire locks in consistent order.",
+    "metadata": {
+      "category": "concurrency",
+      "language": "python",
+      "framework": "sqlalchemy",
+      "severity": "high",
+      "solution": "Use consistent lock ordering, set transaction timeouts, implement retry logic with exponential backoff"
+    }
+  },
+  {
+    "page_content": "Exception Handling Anti-pattern: Catching all exceptions with bare except can hide bugs. Be specific about exceptions you catch and let critical errors propagate.",
+    "metadata": {
+      "category": "bugs",
+      "language": "python",
+      "severity": "medium",
+      "example": "# Bad:\ntry:\n    risky_operation()\nexcept:\n    pass\n\n# Good:\ntry:\n    risky_operation()\nexcept SpecificError as e:\n    logger.error(f'Expected error: {e}')\n    handle_error()"
+    }
+  },
+  {
+    "page_content": "Memory Efficient Data Processing: For large datasets, use generators instead of loading all data into memory. Process data in chunks or use streaming.",
+    "metadata": {
+      "category": "performance",
+      "language": "python",
+      "example": "def read_large_file(filename):\n    with open(filename) as f:\n        for line in f:  # Generator, not loading entire file\n            yield line.strip()"
+    }
+  },
+  {
+    "page_content": "API Versioning: Always version your APIs to maintain backward compatibility. Use URL versioning (/api/v1/) or header-based versioning.",
+    "metadata": {
+      "category": "best_practices",
+      "language": "python",
+      "framework": "flask",
+      "example": "@app.route('/api/v1/users')\ndef get_users_v1():\n    return jsonify(users)\n\n@app.route('/api/v2/users')\ndef get_users_v2():\n    # Enhanced version with more features\n    return jsonify(enhanced_users)"
+    }
+  },
+  {
+    "page_content": "Docker Container Best Practices: Use multi-stage builds to reduce image size. Don't run containers as root. Use .dockerignore to exclude unnecessary files.",
+    "metadata": {
+      "category": "deployment",
+      "language": "docker",
+      "example": "# Multi-stage build\nFROM python:3.11-slim as builder\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --user -r requirements.txt\n\nFROM python:3.11-slim\nWORKDIR /app\nCOPY --from=builder /root/.local /root/.local\nCOPY . .\nUSER 1000\nCMD ['python', 'app.py']"
+    }
+  }
+]
