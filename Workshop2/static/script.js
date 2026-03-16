@@ -148,7 +148,8 @@ class AdvancedChatbot {
         const modeDescriptions = {
             'advanced_chatbot': 'Multi-turn conversation với function calling và advanced prompting',
             'code_reviewer': 'Detailed code analysis với security, performance, và best practices review',
-            'debugging_assistant': 'Step-by-step debugging help với systematic problem solving'
+            'debugging_assistant': 'Step-by-step debugging help với systematic problem solving',
+            'electronics_expert': 'Chuyên gia điện tử: mạch điện, vi điều khiển, PCB, IoT và hệ thống nhúng'
         };
         
         document.getElementById('chatSubtitle').textContent = modeDescriptions[this.currentMode];
@@ -160,7 +161,8 @@ class AdvancedChatbot {
         const titles = {
             'advanced_chatbot': 'Advanced AI Development Assistant',
             'code_reviewer': 'Senior Code Reviewer',
-            'debugging_assistant': 'Debugging Expert'
+            'debugging_assistant': 'Debugging Expert',
+            'electronics_expert': 'Electronics Expert'
         };
         
         document.getElementById('chatTitle').textContent = titles[this.currentMode];
@@ -288,7 +290,8 @@ class AdvancedChatbot {
         const names = {
             'advanced_chatbot': 'AI Development Expert',
             'code_reviewer': 'Senior Code Reviewer',
-            'debugging_assistant': 'Debugging Expert'
+            'debugging_assistant': 'Debugging Expert',
+            'electronics_expert': 'Electronics Expert'
         };
         return names[this.currentMode];
     }
